@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request, abort
 from urllib.parse import urlsplit
 from flask_login import login_user, logout_user, current_user
 from flask_babel import _
@@ -13,6 +13,10 @@ from app.auth.email import send_password_reset_email
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
+    # Deliberately broken release: makes /auth/login return 500 so the
+    # deploy health check fails and the pipeline's automatic rollback can
+    # be demonstrated. Reverted in the follow-up commit.
+    abort(500)
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     form = LoginForm()
