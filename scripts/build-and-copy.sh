@@ -1,4 +1,7 @@
 #!/bin/bash
+# Manual primitive, superseded by scripts/deploy.sh (versioned releases,
+# backup, migration, health check and automatic rollback). Kept for ad-hoc
+# code delivery only; it still overwrites the single "manual" directory.
 set -euo pipefail
 server=${1:?test-server or prod-server}
 export FLASK_ENV=production

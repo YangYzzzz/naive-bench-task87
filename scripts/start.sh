@@ -1,4 +1,7 @@
 #!/bin/bash
+# Manual restart against the legacy "manual" release directory, without a
+# health check or rollback. scripts/deploy-remote.sh restarts the versioned
+# release and verifies it instead. Prefer scripts/deploy.sh.
 set -euo pipefail
 server=${1:?server}
 ssh "$server" 'bash -s' <<'REMOTE'

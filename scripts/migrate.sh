@@ -1,4 +1,7 @@
 #!/bin/bash
+# Manual migration against the legacy "manual" release directory.
+# scripts/deploy-remote.sh runs migrations inside each versioned release,
+# after taking its own backup. Prefer scripts/deploy.sh.
 set -euo pipefail
 server=${1:?server}; backup=${2:?backup path required before database migrations}
 ssh "$server" bash -s -- "$backup" <<'REMOTE'

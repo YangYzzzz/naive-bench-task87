@@ -1,4 +1,6 @@
 #!/bin/bash
+# Manual/standalone database backup. scripts/deploy-remote.sh performs the
+# same backup automatically before every migration.
 set -euo pipefail
 server=${1:?test-server or prod-server}
 ssh "$server" 'python3 -' <<'PY'

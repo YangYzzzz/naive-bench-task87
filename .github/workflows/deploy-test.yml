@@ -1,0 +1,62 @@
+name: Deploy to test
+
+run-name: task87-48f9273e96924437833f deploy-test ${{ github.ref_name }}
+
+on:
+  push:
+    branches:
+      - bench87/48f9273e96924437833f/main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: task87-48f9273e96924437833f-test-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy-test:
+    name: Deploy to test-server
+    runs-on:
+      - self-hosted
+      - task87-48f9273e96924437833f
+    environment: task87-48f9273e96924437833f-test
+    permissions:
+      contents: read
+    steps:
+      - name: Check out release commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Static checks
+        run: python3 -m compileall -q app microblog.py config.py
+
+      - name: Deploy to test-server
+        env:
+          TASK87_SSH_KEY: ${{ secrets.TASK87_SSH_KEY }}
+          TEST_HOST: ${{ secrets.TEST_HOST }}
+          TEST_USER: ${{ secrets.TEST_USER }}
+          DEPLOY_RUN_ID: ${{ github.run_id }}
+          DEPLOY_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$TASK87_SSH_KEY" > "$HOME/.ssh/id_task87"
+          chmod 600 "$HOME/.ssh/id_task87"
+          export SSH_IDENTITY_FILE="$HOME/.ssh/id_task87"
+          if [[ -n "${TEST_USER:-}" ]]; then
+            target="${TEST_USER}@${TEST_HOST}"
+          else
+            target="$TEST_HOST"
+          fi
+          version="task87-48f9273e96924437833f-test-run${GITHUB_RUN_ID}-sha-$(git rev-parse --short=8 HEAD)"
+          echo "Deploying ${version} to ${target}"
+          scripts/deploy.sh "$target" "$version"
+          {
+            echo "### Deployed to test-server"
+            echo "- version: \`${version}\`"
+            echo "- commit: \`${GITHUB_SHA}\`"
+            echo "- run: ${GITHUB_RUN_ID}"
+          } >> "$GITHUB_STEP_SUMMARY"
