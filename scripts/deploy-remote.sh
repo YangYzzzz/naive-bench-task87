@@ -156,9 +156,10 @@ install -d -o app -g app -m 750 "$RELEASE"
 tar xzf "$ARCHIVE" -C "$RELEASE" || fail "failed to extract code archive"
 [[ -f "$RELEASE/microblog.py" ]] || fail "archive does not contain microblog.py"
 chown -R app:app "$RELEASE" || fail "could not change release ownership"
+cd "$RELEASE" || fail "cannot enter $RELEASE"
 
 # --- quality gate ----------------------------------------------------------
-if [[ -f "$RELEASE/tests.py" ]]; then
+if [[ -f tests.py ]]; then
   log "running unit tests"
   runuser -u app -- env ELASTICSEARCH_URL= \
     /opt/task87-venv/bin/python tests.py >> "$DEPLOY_LOG" 2>&1 \
@@ -181,7 +182,6 @@ fi
 
 # --- migrations ------------------------------------------------------------
 log "running database migrations"
-cd "$RELEASE" || fail "cannot enter $RELEASE"
 if ! runuser -u app -- env \
       FLASK_APP=microblog.py \
       DATABASE_URL="sqlite:///$DATA" \
